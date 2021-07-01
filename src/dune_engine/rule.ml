@@ -92,14 +92,13 @@ let make ?(sandbox = Sandbox_config.default) ?(mode = Mode.Standard) ~context
     ?(info = Info.Internal) ~targets action =
   let open Memo.Build.O in
   let action =
-    Action_builder.memoize "Rule.make"
-      (Action_builder.of_thunk
-         { f =
-             (fun mode ->
-               let+ action, deps = Action_builder.run action mode in
-               let deps = add_sandbox_config mode sandbox deps in
-               (action, deps))
-         })
+    Action_builder.of_thunk
+      { f =
+          (fun mode ->
+            let+ action, deps = Action_builder.run action mode in
+            let deps = add_sandbox_config mode sandbox deps in
+            (action, deps))
+      }
   in
   let dir =
     match Path.Build.Set.choose targets with
@@ -138,9 +137,7 @@ let make ?(sandbox = Sandbox_config.default) ?(mode = Mode.Standard) ~context
   in
   { id = Id.gen (); targets; context; action; mode; info; loc; dir }
 
-let set_action t action =
-  let action = Action_builder.memoize "Rule.set_action" action in
-  { t with action }
+let set_action t action = { t with action }
 
 let find_source_dir rule =
   let _, src_dir = Path.Build.extract_build_context_dir_exn rule.dir in

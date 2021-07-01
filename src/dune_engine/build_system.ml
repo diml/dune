@@ -747,6 +747,11 @@ end = struct
   let compile_rules ~dir ~source_dirs rules =
     List.concat_map rules ~f:(fun rule ->
         assert (Path.Build.( = ) dir rule.Rule.dir);
+        let rule =
+          Rule.set_action rule
+            (Action_builder.memoize "Build_system.Load_rules.compile_rules"
+               rule.action)
+        in
         Path.Build.Set.to_list_map rule.targets ~f:(fun target ->
             if String.Set.mem source_dirs (Path.Build.basename target) then
               report_rule_src_dir_conflict dir target rule
